@@ -4,6 +4,7 @@ import pyodbc
 import os
 from datetime import date
 from dotenv import load_dotenv
+from simulation_stream_service import AccumulativeReadingStreamService
 
 load_dotenv()
 
@@ -13,6 +14,9 @@ CONNECTION_STRING = os.getenv(
     "DB_CONNECTION_STRING",
     "DRIVER={ODBC Driver 17 for SQL Server};SERVER=localhost;DATABASE=e-mon;Trusted_Connection=yes;"
 )
+
+SIMULATION_ENABLED = os.getenv("SIMULATION_ENABLED", "true").lower() == "true"
+SIMULATION_INTERVAL_SECONDS = int(os.getenv("SIMULATION_INTERVAL_SECONDS", "60"))
 
 CREATE_TABLE_SQL = """
 IF NOT EXISTS (
@@ -41,12 +45,25 @@ def get_connection():
     return pyodbc.connect(CONNECTION_STRING)
 
 
+reading_stream_service = AccumulativeReadingStreamService(
+    get_connection,
+    interval_seconds=SIMULATION_INTERVAL_SECONDS,
+)
+
+
 @app.on_event("startup")
 def startup():
     conn = get_connection()
     conn.execute(CREATE_TABLE_SQL)
     conn.commit()
     conn.close()
+    if SIMULATION_ENABLED:
+        reading_stream_service.start()
+
+
+@app.on_event("shutdown")
+def shutdown():
+    reading_stream_service.stop()
 
 
 class ReadingRequest(BaseModel):
@@ -167,6 +184,25 @@ def get_monthly_values():
             }
             for row in rows
         ]
+
+    except pyodbc.Error as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+@app.delete("/readings", status_code=200)
+def delete_all_readings():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM AccumulativeReadings")
+        deleted_count = cursor.rowcount
+        conn.commit()
+
+        return {"message": "All readings deleted", "deleted_count": deleted_count}
 
     except pyodbc.Error as e:
         raise HTTPException(status_code=500, detail=str(e))

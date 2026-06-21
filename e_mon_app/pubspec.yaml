@@ -30,9 +30,11 @@ environment:
 dependencies:
   cupertino_icons: ^1.0.8
   dio: ^5.9.2
+  fl_chart: ^1.1.1
   flutter:
     sdk: flutter
   flutter_blocknote_editor: ^0.0.24
+  flutter_bloc: ^9.1.1
   go_router: ^17.3.0
   google_fonts: ^8.1.0
   pretty_dio_logger: ^1.4.0

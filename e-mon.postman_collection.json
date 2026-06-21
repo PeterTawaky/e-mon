@@ -84,6 +84,37 @@
           ]
         },
         {
+          "name": "Delete All Readings",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/readings",
+              "host": ["{{base_url}}"],
+              "path": ["readings"]
+            },
+            "description": "Deletes all records from AccumulativeReadings and returns the number of deleted rows."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"message\": \"All readings deleted\",\n  \"deleted_count\": 5\n}",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/readings",
+                  "host": ["{{base_url}}"],
+                  "path": ["readings"]
+                }
+              }
+            }
+          ]
+        },
+        {
           "name": "Get Specific Range",
           "request": {
             "method": "GET",

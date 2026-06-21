@@ -1,8 +1,11 @@
 class ApiConstants {
-  static const String baseUrl = 'http://192.168.1.103:8000';
+  static const String baseUrl = 'http://127.0.0.1:8000';
 }
 
 class ApiEndpoints {
+  // Readings
+  static const String readings = '/readings';
+
   // Auth
   static const String login = '/system-users/login';
 
