@@ -182,7 +182,10 @@ class _LiveChartPanel extends StatelessWidget {
       );
     }
 
-    return _TrendLineChart(readings: readings);
+    return _TrendLineChart(
+      readings: readings,
+      selectedRange: state.selectedRange,
+    );
   }
 }
 
@@ -209,6 +212,13 @@ class _ChartToolbar extends StatelessWidget {
                 const SizedBox(width: AppSpacing.sm),
                 _StatsHoverButton(state: state),
               ],
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              _formatPeriodLabel(state.selectedRange),
+              style: AppTextStyles.bodyMd.copyWith(
+                color: AppColors.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: AppSpacing.xs),
             Row(
@@ -564,9 +574,10 @@ class _LiveDot extends StatelessWidget {
 }
 
 class _TrendLineChart extends StatelessWidget {
-  const _TrendLineChart({required this.readings});
+  const _TrendLineChart({required this.readings, required this.selectedRange});
 
   final List<ReadingModel> readings;
+  final ChartRange selectedRange;
 
   @override
   Widget build(BuildContext context) {
@@ -631,7 +642,10 @@ class _TrendLineChart extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(top: AppSpacing.sm),
                   child: Text(
-                    _formatReadingLabel(readings[index].createdAt),
+                    _formatReadingLabel(
+                      readings[index].createdAt,
+                      selectedRange,
+                    ),
                     style: AppTextStyles.dataTabular.copyWith(
                       color: AppColors.mutedText,
                     ),
@@ -744,8 +758,14 @@ double _bottomInterval(int count) {
   return (count / 4).floorToDouble();
 }
 
-String _formatReadingLabel(DateTime value) {
-  return '${_twoDigits(value.hour)}:${_twoDigits(value.minute)}';
+String _formatReadingLabel(DateTime value, ChartRange range) {
+  return switch (range) {
+    ChartRange.day => '${_twoDigits(value.hour)}:${_twoDigits(value.minute)}',
+    ChartRange.week => '${_shortMonth(value.month)} ${value.day}',
+    ChartRange.month => '${_shortMonth(value.month)} ${value.day}',
+    ChartRange.sixMonths => _shortMonth(value.month),
+    ChartRange.year => '${_shortMonth(value.month)} ${value.year}',
+  };
 }
 
 String _formatDateTime(DateTime value) {
@@ -754,3 +774,41 @@ String _formatDateTime(DateTime value) {
 }
 
 String _twoDigits(int value) => value.toString().padLeft(2, '0');
+
+String _formatPeriodLabel(ChartRange range) {
+  final now = DateTime.now();
+  final start = range.startDate(now);
+
+  return switch (range) {
+    ChartRange.day => 'Today, ${_formatDate(start)} - ${_formatDate(now)}',
+    ChartRange.week =>
+      'Week period, ${_formatDate(start)} - ${_formatDate(now)}',
+    ChartRange.month =>
+      'Month period, ${_formatDate(start)} - ${_formatDate(now)}',
+    ChartRange.sixMonths =>
+      '6 month period, ${_formatDate(start)} - ${_formatDate(now)}',
+    ChartRange.year =>
+      'Year period, ${_formatDate(start)} - ${_formatDate(now)}',
+  };
+}
+
+String _formatDate(DateTime value) {
+  return '${_shortMonth(value.month)} ${value.day}, ${value.year}';
+}
+
+String _shortMonth(int month) {
+  return const [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ][month - 1];
+}
