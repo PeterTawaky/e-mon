@@ -1,0 +1,213 @@
+{
+  "info": {
+    "name": "E-Mon API",
+    "_postman_id": "e-mon-collection-001",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Energy Monitoring API"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            },
+            "description": "Returns 200 with status ok if the server is running."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"status\": \"ok\",\n  \"message\": \"E-Mon API is running\"\n}",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/",
+                  "host": ["{{base_url}}"],
+                  "path": [""]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Readings",
+      "item": [
+        {
+          "name": "Get All Readings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/readings",
+              "host": ["{{base_url}}"],
+              "path": ["readings"]
+            },
+            "description": "Returns all readings ordered by newest first."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "[\n  {\n    \"id\": 2,\n    \"component_name\": \"Main Meter\",\n    \"accumulative_value\": 1500.0,\n    \"past_accumulative_value\": 1250.5,\n    \"relative_value\": 249.5,\n    \"created_at\": \"2026-06-21T11:00:00\"\n  },\n  {\n    \"id\": 1,\n    \"component_name\": \"Main Meter\",\n    \"accumulative_value\": 1250.5,\n    \"past_accumulative_value\": 0.0,\n    \"relative_value\": 1250.5,\n    \"created_at\": \"2026-06-21T10:00:00\"\n  }\n]",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/readings",
+                  "host": ["{{base_url}}"],
+                  "path": ["readings"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Specific Range",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/readings/range?start_date=2026-06-01&end_date=2026-06-21",
+              "host": ["{{base_url}}"],
+              "path": ["readings", "range"],
+              "query": [
+                { "key": "start_date", "value": "2026-06-01", "description": "Start date (YYYY-MM-DD)" },
+                { "key": "end_date",   "value": "2026-06-21", "description": "End date (YYYY-MM-DD)" }
+              ]
+            },
+            "description": "Returns all readings whose record_date falls between start_date and end_date (inclusive). Dates only — no time component."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "[\n  {\n    \"id\": 3,\n    \"component_name\": \"Main Meter\",\n    \"accumulative_value\": 1800.0,\n    \"past_accumulative_value\": 1500.0,\n    \"relative_value\": 300.0,\n    \"created_at\": \"2026-06-21T09:00:00\"\n  }\n]",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/readings/range?start_date=2026-06-01&end_date=2026-06-21",
+                  "host": ["{{base_url}}"],
+                  "path": ["readings", "range"],
+                  "query": [
+                    { "key": "start_date", "value": "2026-06-01" },
+                    { "key": "end_date",   "value": "2026-06-21" }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Monthly Values",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/readings/monthly",
+              "host": ["{{base_url}}"],
+              "path": ["readings", "monthly"]
+            },
+            "description": "Returns all readings for the current calendar month. No parameters needed — month and year are derived server-side."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "[\n  {\n    \"id\": 3,\n    \"component_name\": \"Main Meter\",\n    \"accumulative_value\": 1800.0,\n    \"past_accumulative_value\": 1500.0,\n    \"relative_value\": 300.0,\n    \"created_at\": \"2026-06-21T09:00:00\"\n  }\n]",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/readings/monthly",
+                  "host": ["{{base_url}}"],
+                  "path": ["readings", "monthly"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Reading",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/readings",
+              "host": ["{{base_url}}"],
+              "path": ["readings"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"component_name\": \"Main Meter\",\n  \"accumulative_value\": 1250.500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Post a new accumulative reading for a component. `past_accumulative_value` is resolved automatically from the last record of the same component (0 if first record)."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "header": [{ "key": "Content-Type", "value": "application/json" }],
+              "body": "{\n  \"id\": 1,\n  \"component_name\": \"Main Meter\",\n  \"accumulative_value\": 1250.5,\n  \"past_accumulative_value\": 0.0,\n  \"relative_value\": 1250.5,\n  \"created_at\": \"2026-06-21T10:00:00\"\n}",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/readings",
+                  "host": ["{{base_url}}"],
+                  "path": ["readings"]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"component_name\": \"Main Meter\",\n  \"accumulative_value\": 1250.500\n}"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

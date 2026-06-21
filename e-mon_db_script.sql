@@ -1,4 +1,4 @@
-CREATE TABLE dbo.AccumulativeReadings
+CREATE TABLE AccumulativeReadings
 (
     id INT IDENTITY(1,1) PRIMARY KEY,
 
