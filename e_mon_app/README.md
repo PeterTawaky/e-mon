@@ -1,6 +1,6 @@
-# e_mon_app
+# WattWise App
 
-Flutter client for the e-mon energy monitoring system.
+Flutter client for the WattWise power monitoring system.
 
 ## Architecture
 

@@ -5,9 +5,17 @@ class ApiConstants {
 class ApiEndpoints {
   // Readings
   static const String readings = '/readings';
+  static const String readingsRange = '/readings/range';
+  static const String readingsMonthly = '/readings/monthly';
 
   // Auth
-  static const String login = '/system-users/login';
+  static const String login = '/auth/login';
+
+  // Users
+  static const String users = '/users';
+
+  // Auth
+  static const String legacyLogin = '/system-users/login';
 
   // Companies
   static const String companies = '/companies';

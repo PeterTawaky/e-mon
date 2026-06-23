@@ -1,3 +1,10 @@
+CREATE TABLE system_users
+(
+    id       INT IDENTITY(1,1) PRIMARY KEY,
+    [user]   NVARCHAR(100) NOT NULL,
+    [password] NVARCHAR(255) NOT NULL
+);
+
 CREATE TABLE AccumulativeReadings
 (
     id INT IDENTITY(1,1) PRIMARY KEY,

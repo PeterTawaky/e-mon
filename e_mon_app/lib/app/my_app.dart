@@ -9,7 +9,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'E-Mon',
+      title: 'WattWise',
       theme: AppTheme.dark,
       routerConfig: RouterGenerator.mainRouting,
     );

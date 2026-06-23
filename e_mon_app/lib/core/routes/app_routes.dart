@@ -1,5 +1,6 @@
 class AppRoutes {
   AppRoutes._();
-  
-  static const homeView = '/homeView';
+
+  static const loginView = '/';
+  static const homeView = '/dashboard';
 }

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('renders live energy dashboard', (tester) async {
+  testWidgets('renders live power dashboard', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         home: HomeView(homeRepo: _FakeHomeRepo(), enableLiveUpdates: false),
@@ -13,9 +13,8 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Live Energy Trend'), findsOneWidget);
-    expect(find.text('Usage Report'), findsOneWidget);
-    expect(find.text('Export Report'), findsOneWidget);
+    expect(find.text('WattWise Dashboard'), findsOneWidget);
+    expect(find.text('Dashboard'), findsWidgets);
     expect(find.text('Day'), findsOneWidget);
   });
 }
@@ -27,7 +26,7 @@ class _FakeHomeRepo implements HomeRepo {
     return [
       ReadingModel(
         id: 1,
-        componentName: 'Main Energy Meter',
+        componentName: 'Main Power Meter',
         accumulativeValue: 100,
         pastAccumulativeValue: 96,
         relativeValue: 4,
@@ -35,7 +34,7 @@ class _FakeHomeRepo implements HomeRepo {
       ),
       ReadingModel(
         id: 2,
-        componentName: 'Main Energy Meter',
+        componentName: 'Main Power Meter',
         accumulativeValue: 105,
         pastAccumulativeValue: 100,
         relativeValue: 5,

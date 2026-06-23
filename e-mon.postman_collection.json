@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "E-Mon API",
+    "name": "WattWise API",
     "_postman_id": "e-mon-collection-001",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "description": "Energy Monitoring API"
@@ -34,7 +34,7 @@
               "status": "OK",
               "code": 200,
               "header": [{ "key": "Content-Type", "value": "application/json" }],
-              "body": "{\n  \"status\": \"ok\",\n  \"message\": \"E-Mon API is running\"\n}",
+              "body": "{\n  \"status\": \"ok\",\n  \"message\": \"WattWise API is running\"\n}",
               "originalRequest": {
                 "method": "GET",
                 "header": [],

@@ -8,7 +8,7 @@ from simulation_stream_service import AccumulativeReadingStreamService
 
 load_dotenv()
 
-app = FastAPI(title="E-Mon API")
+app = FastAPI(title="WattWise API")
 
 CONNECTION_STRING = os.getenv(
     "DB_CONNECTION_STRING",
@@ -17,6 +17,8 @@ CONNECTION_STRING = os.getenv(
 
 SIMULATION_ENABLED = os.getenv("SIMULATION_ENABLED", "true").lower() == "true"
 SIMULATION_INTERVAL_SECONDS = int(os.getenv("SIMULATION_INTERVAL_SECONDS", "60"))
+DEFAULT_ADMIN_USER = os.getenv("DEFAULT_ADMIN_USER", "admin")
+DEFAULT_ADMIN_PASSWORD = os.getenv("DEFAULT_ADMIN_PASSWORD", "admin123")
 
 CREATE_TABLE_SQL = """
 IF NOT EXISTS (
@@ -40,9 +42,52 @@ BEGIN
 END
 """
 
+MIGRATE_USERS_TABLE_SQL = """
+IF EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME = 'SystemUsers'
+    AND COLUMN_NAME IN ('email', 'password_hash')
+)
+BEGIN
+    DROP TABLE SystemUsers
+END
+"""
+
+CREATE_USERS_TABLE_SQL = """
+IF NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_NAME = 'SystemUsers'
+)
+BEGIN
+    CREATE TABLE SystemUsers (
+        id          INT IDENTITY(1,1) PRIMARY KEY,
+        [user]      NVARCHAR(255) NOT NULL UNIQUE,
+        [password]  NVARCHAR(255) NOT NULL,
+        created_at  DATETIME2(0) NOT NULL DEFAULT SYSDATETIME()
+    )
+END
+"""
+
 
 def get_connection():
     return pyodbc.connect(CONNECTION_STRING)
+
+
+def ensure_default_admin():
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(1) FROM SystemUsers")
+        users_count = cursor.fetchone()[0]
+        if users_count == 0:
+            cursor.execute(
+                "INSERT INTO SystemUsers ([user], [password]) VALUES (?, ?)",
+                DEFAULT_ADMIN_USER,
+                DEFAULT_ADMIN_PASSWORD,
+            )
+            conn.commit()
+    finally:
+        conn.close()
 
 
 reading_stream_service = AccumulativeReadingStreamService(
@@ -55,8 +100,11 @@ reading_stream_service = AccumulativeReadingStreamService(
 def startup():
     conn = get_connection()
     conn.execute(CREATE_TABLE_SQL)
+    conn.execute(MIGRATE_USERS_TABLE_SQL)
+    conn.execute(CREATE_USERS_TABLE_SQL)
     conn.commit()
     conn.close()
+    ensure_default_admin()
     if SIMULATION_ENABLED:
         reading_stream_service.start()
 
@@ -71,9 +119,134 @@ class ReadingRequest(BaseModel):
     accumulative_value: float
 
 
+class LoginRequest(BaseModel):
+    user: str = Field(..., max_length=255)
+    password: str = Field(..., min_length=1, max_length=128)
+
+
+class CreateUserRequest(BaseModel):
+    user: str = Field(..., max_length=255)
+    password: str = Field(..., min_length=6, max_length=128)
+
+
 @app.get("/")
 def health_check():
-    return {"status": "ok", "message": "E-Mon API is running"}
+    return {"status": "ok", "message": "WattWise API is running"}
+
+
+@app.post("/auth/login")
+def login(request: LoginRequest):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, [user] FROM SystemUsers WHERE [user] = ? AND [password] = ?",
+            request.user,
+            request.password,
+        )
+        row = cursor.fetchone()
+
+        if not row:
+            raise HTTPException(status_code=401, detail="Invalid user or password")
+
+        return {"id": row[0], "user": row[1]}
+
+    except HTTPException:
+        raise
+    except pyodbc.Error as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+@app.get("/users")
+def get_users():
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id, [user], [password], created_at FROM SystemUsers ORDER BY id DESC"
+        )
+        rows = cursor.fetchall()
+
+        return [
+            {
+                "id": row[0],
+                "user": row[1],
+                "password": row[2],
+                "created_at": row[3].isoformat()
+            }
+            for row in rows
+        ]
+
+    except pyodbc.Error as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+@app.post("/users", status_code=201)
+def create_user(request: CreateUserRequest):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT COUNT(1) FROM SystemUsers WHERE [user] = ?", request.user)
+        if cursor.fetchone()[0] > 0:
+            raise HTTPException(status_code=409, detail="User already exists")
+
+        cursor.execute(
+            """
+            INSERT INTO SystemUsers ([user], [password])
+            OUTPUT INSERTED.id, INSERTED.[user], INSERTED.[password], INSERTED.created_at
+            VALUES (?, ?)
+            """,
+            request.user,
+            request.password,
+        )
+        result = cursor.fetchone()
+        conn.commit()
+
+        return {
+            "id": result[0],
+            "user": result[1],
+            "password": result[2],
+            "created_at": result[3].isoformat()
+        }
+
+    except HTTPException:
+        raise
+    except pyodbc.Error as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if "conn" in locals():
+            conn.close()
+
+
+@app.delete("/users/{user_id}", status_code=200)
+def delete_user(user_id: int):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM SystemUsers WHERE id = ?", user_id)
+        deleted_count = cursor.rowcount
+        conn.commit()
+
+        if deleted_count == 0:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        return {"message": "User deleted successfully", "deleted_id": user_id}
+
+    except HTTPException:
+        raise
+    except pyodbc.Error as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if "conn" in locals():
+            conn.close()
 
 
 @app.get("/readings")
@@ -114,8 +287,11 @@ def get_all_readings():
 @app.get("/readings/range")
 def get_specific_range(
     start_date: date = Query(..., description="Start date (YYYY-MM-DD)"),
-    end_date: date = Query(..., description="End date (YYYY-MM-DD)")
+    end_date: date = Query(None, description="End date (YYYY-MM-DD), defaults to today")
 ):
+    if end_date is None:
+        end_date = date.today()
+
     try:
         conn = get_connection()
         cursor = conn.cursor()

@@ -2,20 +2,16 @@
 class Assets {
   Assets._();
   
-  /// Assets for imagesHATechnology
-  /// assets/images/HA_Technology.png
-  static const String imagesHATechnology = "assets/images/HA_Technology.png";
+  /// Assets for imagesAppLogo
+  /// assets/images/app_logo.png
+  static const String imagesAppLogo = "assets/images/app_logo.png";
 
-  /// Assets for imagesInvoiceTemplate
-  /// assets/images/invoice_template.webp
-  static const String imagesInvoiceTemplate = "assets/images/invoice_template.webp";
+  /// Assets for imagesLogo
+  /// assets/images/logo.png
+  static const String imagesLogo = "assets/images/logo.png";
 
-  /// Assets for imagesLogoWithTitle
-  /// assets/images/logo_with_title.jfif
-  static const String imagesLogoWithTitle = "assets/images/logo_with_title.jfif";
-
-  /// Assets for imagesTransactionTemplate
-  /// assets/images/transaction_template.jpg
-  static const String imagesTransactionTemplate = "assets/images/transaction_template.jpg";
+  /// Assets for imagesPotentiometer
+  /// assets/images/potentiometer.png
+  static const String imagesPotentiometer = "assets/images/potentiometer.png";
 }
 

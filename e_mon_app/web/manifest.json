@@ -1,6 +1,6 @@
 {
-    "name": "e_mon_app",
-    "short_name": "e_mon_app",
+    "name": "WattWise",
+    "short_name": "WattWise",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

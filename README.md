@@ -1,6 +1,6 @@
-# e-mon
+# WattWise
 
-Energy monitoring system with a Flutter client and FastAPI backend.
+Power monitoring system with a Flutter client and FastAPI backend.
 
 ## Project Structure
 
