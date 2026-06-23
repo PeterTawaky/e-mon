@@ -131,6 +131,10 @@ class _DashboardContent extends StatelessWidget {
       );
     }
 
+    if (selectedDestination == _MenuDestination.devices) {
+      return const _DevicesModule();
+    }
+
     if (selectedDestination != _MenuDestination.dashboard) {
       return _ComingSoonModule(destination: selectedDestination);
     }
@@ -471,6 +475,487 @@ class _ComingSoonModule extends StatelessWidget {
       ),
     );
   }
+}
+
+class _DevicesModule extends StatelessWidget {
+  const _DevicesModule();
+
+  static const List<_BtuMeterReading> _btuMeters = [
+    _BtuMeterReading(
+      name: 'BTU-01',
+      flowRate: 42.6,
+      supplyTemperature: 7.2,
+      returnTemperature: 12.8,
+      energyRate: 56.4,
+      totalizer: 18420,
+    ),
+    _BtuMeterReading(
+      name: 'BTU-02',
+      flowRate: 38.9,
+      supplyTemperature: 7.5,
+      returnTemperature: 13.1,
+      energyRate: 51.8,
+      totalizer: 17295,
+    ),
+    _BtuMeterReading(
+      name: 'BTU-03',
+      flowRate: 51.3,
+      supplyTemperature: 6.9,
+      returnTemperature: 12.6,
+      energyRate: 69.3,
+      totalizer: 24110,
+    ),
+    _BtuMeterReading(
+      name: 'BTU-04',
+      flowRate: 46.7,
+      supplyTemperature: 7.1,
+      returnTemperature: 11.9,
+      energyRate: 53.2,
+      totalizer: 20640,
+    ),
+    _BtuMeterReading(
+      name: 'BTU-05',
+      flowRate: 33.4,
+      supplyTemperature: 8.0,
+      returnTemperature: 13.4,
+      energyRate: 42.7,
+      totalizer: 14980,
+    ),
+    _BtuMeterReading(
+      name: 'BTU-06',
+      flowRate: 57.1,
+      supplyTemperature: 6.8,
+      returnTemperature: 12.9,
+      energyRate: 82.5,
+      totalizer: 29875,
+    ),
+    _BtuMeterReading(
+      name: 'BTU-07',
+      flowRate: 29.8,
+      supplyTemperature: 7.9,
+      returnTemperature: 11.7,
+      energyRate: 26.8,
+      totalizer: 11840,
+    ),
+    _BtuMeterReading(
+      name: 'BTU-08',
+      flowRate: 62.4,
+      supplyTemperature: 6.6,
+      returnTemperature: 13.5,
+      energyRate: 101.9,
+      totalizer: 33210,
+    ),
+    _BtuMeterReading(
+      name: 'BTU-09',
+      flowRate: 44.2,
+      supplyTemperature: 7.4,
+      returnTemperature: 12.2,
+      energyRate: 50.3,
+      totalizer: 19135,
+    ),
+    _BtuMeterReading(
+      name: 'BTU-10',
+      flowRate: 36.5,
+      supplyTemperature: 7.7,
+      returnTemperature: 12.5,
+      energyRate: 41.5,
+      totalizer: 15890,
+    ),
+    _BtuMeterReading(
+      name: 'BTU-11',
+      flowRate: 49.6,
+      supplyTemperature: 7.0,
+      returnTemperature: 13.3,
+      energyRate: 74.1,
+      totalizer: 25460,
+    ),
+    _BtuMeterReading(
+      name: 'BTU-12',
+      flowRate: 40.8,
+      supplyTemperature: 7.3,
+      returnTemperature: 11.6,
+      energyRate: 41.6,
+      totalizer: 17625,
+    ),
+    _BtuMeterReading(
+      name: 'BTU-13',
+      flowRate: 55.9,
+      supplyTemperature: 6.7,
+      returnTemperature: 12.0,
+      energyRate: 70.2,
+      totalizer: 27940,
+    ),
+    _BtuMeterReading(
+      name: 'BTU-14',
+      flowRate: 31.7,
+      supplyTemperature: 8.1,
+      returnTemperature: 12.7,
+      energyRate: 34.6,
+      totalizer: 13780,
+    ),
+    _BtuMeterReading(
+      name: 'BTU-15',
+      flowRate: 60.2,
+      supplyTemperature: 6.5,
+      returnTemperature: 13.0,
+      energyRate: 92.8,
+      totalizer: 31450,
+    ),
+    _BtuMeterReading(
+      name: 'BTU-16',
+      flowRate: 47.5,
+      supplyTemperature: 7.2,
+      returnTemperature: 12.4,
+      energyRate: 58.5,
+      totalizer: 22170,
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.maxWidth < 760 ? 2 : 4;
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.containerPaddingDesktop),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Devices',
+                style: AppTextStyles.displayLg.copyWith(fontSize: 40),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'Winters BTU meter live snapshot with thermal energy readings.',
+                style: AppTextStyles.bodyLg.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _btuMeters.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  mainAxisSpacing: AppSpacing.md,
+                  crossAxisSpacing: AppSpacing.md,
+                  childAspectRatio: constraints.maxWidth < 760 ? 0.88 : 1.04,
+                ),
+                itemBuilder: (context, index) {
+                  final reading = _btuMeters[index];
+                  return _BtuMeterCard(
+                    reading: reading,
+                    onTap: () => _showBtuMeterDialog(context, reading),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showBtuMeterDialog(BuildContext context, _BtuMeterReading reading) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => _BtuMeterDetailsDialog(reading: reading),
+    );
+  }
+}
+
+class _BtuMeterCard extends StatefulWidget {
+  const _BtuMeterCard({required this.reading, required this.onTap});
+
+  final _BtuMeterReading reading;
+  final VoidCallback onTap;
+
+  @override
+  State<_BtuMeterCard> createState() => _BtuMeterCardState();
+}
+
+class _BtuMeterCardState extends State<_BtuMeterCard> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: InkWell(
+        onTap: widget.onTap,
+        borderRadius: AppRadius.lgBorder,
+        child: AnimatedContainer(
+          duration: AppDurations.t250,
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: AppRadius.lgBorder,
+            border: Border.all(
+              color: _isHovered ? AppColors.primary : AppColors.goldBorder,
+            ),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.surfaceContainerLow,
+                AppColors.card,
+                AppColors.surfaceContainerLowest,
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(
+                  alpha: _isHovered ? 0.14 : 0.06,
+                ),
+                blurRadius: _isHovered ? 28 : 18,
+                offset: const Offset(0, 14),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      widget.reading.name,
+                      style: AppTextStyles.headlineSm,
+                    ),
+                  ),
+                  const _MeterTypePill(label: 'BTU'),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                  child: Image.asset(
+                    Assets.imagesWintersBtuMeter,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${widget.reading.flowRate.toStringAsFixed(1)} L/min',
+                      style: AppTextStyles.headlineMd.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'Delta ${widget.reading.deltaTemperature.toStringAsFixed(1)} C',
+                    style: AppTextStyles.labelCaps.copyWith(
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                '${widget.reading.energyRate.toStringAsFixed(1)} kW thermal',
+                style: AppTextStyles.bodyMd.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BtuMeterDetailsDialog extends StatelessWidget {
+  const _BtuMeterDetailsDialog({required this.reading});
+
+  final _BtuMeterReading reading;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppColors.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: AppRadius.lgBorder,
+        side: const BorderSide(color: AppColors.goldBorder),
+      ),
+      title: Row(
+        children: [
+          Expanded(child: Text('${reading.name} Reading')),
+          const _MeterTypePill(label: 'BTU'),
+        ],
+      ),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              height: 150,
+              child: Image.asset(
+                Assets.imagesWintersBtuMeter,
+                fit: BoxFit.contain,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            _ReadingTile(
+              icon: Icons.water_drop_outlined,
+              label: 'Flow Rate',
+              value: '${reading.flowRate.toStringAsFixed(1)} L/min',
+              helper: 'Real-time volume passing through the meter',
+            ),
+            _ReadingTile(
+              icon: Icons.device_thermostat_rounded,
+              label: 'Supply / Return Temperature',
+              value:
+                  '${reading.supplyTemperature.toStringAsFixed(1)} / ${reading.returnTemperature.toStringAsFixed(1)} C',
+              helper:
+                  'Delta T ${reading.deltaTemperature.toStringAsFixed(1)} C between inlet and outlet',
+            ),
+            _ReadingTile(
+              icon: Icons.local_fire_department_rounded,
+              label: 'BTU / Energy Consumption',
+              value: '${reading.energyRate.toStringAsFixed(1)} kW',
+              helper: 'Real-time thermal energy transfer rate',
+            ),
+            _ReadingTile(
+              icon: Icons.av_timer_rounded,
+              label: 'Totalizer / Accumulated Energy',
+              value: '${reading.totalizer.toStringAsFixed(0)} kWh',
+              helper: 'Cumulative energy consumed since last reset',
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Close'),
+        ),
+      ],
+    );
+  }
+}
+
+class _ReadingTile extends StatelessWidget {
+  const _ReadingTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.helper,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final String helper;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        borderRadius: AppRadius.lgBorder,
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.12),
+              borderRadius: AppRadius.mdBorder,
+            ),
+            child: Icon(icon, color: AppColors.primary, size: 20),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: AppTextStyles.bodyMd),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  helper,
+                  style: AppTextStyles.labelCaps.copyWith(
+                    color: AppColors.mutedText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Text(
+            value,
+            textAlign: TextAlign.end,
+            style: AppTextStyles.headlineSm.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MeterTypePill extends StatelessWidget {
+  const _MeterTypePill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.12),
+        borderRadius: AppRadius.fullBorder,
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.42)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
+        ),
+        child: Text(
+          label,
+          style: AppTextStyles.labelCaps.copyWith(color: AppColors.primary),
+        ),
+      ),
+    );
+  }
+}
+
+class _BtuMeterReading {
+  const _BtuMeterReading({
+    required this.name,
+    required this.flowRate,
+    required this.supplyTemperature,
+    required this.returnTemperature,
+    required this.energyRate,
+    required this.totalizer,
+  });
+
+  final String name;
+  final double flowRate;
+  final double supplyTemperature;
+  final double returnTemperature;
+  final double energyRate;
+  final double totalizer;
+
+  double get deltaTemperature => returnTemperature - supplyTemperature;
 }
 
 class _UsersModule extends StatefulWidget {

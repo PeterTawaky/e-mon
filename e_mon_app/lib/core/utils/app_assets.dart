@@ -10,8 +10,8 @@ class Assets {
   /// assets/images/logo.png
   static const String imagesLogo = "assets/images/logo.png";
 
-  /// Assets for imagesPotentiometer
-  /// assets/images/potentiometer.png
-  static const String imagesPotentiometer = "assets/images/potentiometer.png";
+  /// Assets for imagesWintersBtuMeter
+  /// assets/images/winters_btu_meter.png
+  static const String imagesWintersBtuMeter = "assets/images/winters_btu_meter.png";
 }
 
