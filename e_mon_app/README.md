@@ -2,6 +2,17 @@
 
 Flutter client for the WattWise power monitoring system.
 
+## Current Modules
+
+- Dashboard: live simulated device readings with chart ranges for day, week, month, six months, and year.
+- Devices: Winters BTU meter overview with 16 meter cards in a responsive grid.
+- Reports: specific-period and monthly energy reports with PDF generation.
+- Users: create, list, and delete dashboard users.
+
+The Devices module is implemented under `lib/features/devices/`.
+
+The Devices view uses `assets/images/winters_btu_meter.png`. Clicking a meter opens a details dialog with flow rate, supply and return temperatures with Delta T, real-time energy consumption, and accumulated energy totalizer values.
+
 ## Architecture
 
 Use MVVM grouped by feature:
