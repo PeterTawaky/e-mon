@@ -59,7 +59,7 @@ class _CardDecoration extends BoxDecoration {
         color: AppColors.card,
         borderRadius: AppRadius.lgBorder,
         border: Border.all(
-          color: isHovered ? AppColors.primary : AppColors.goldBorder,
+          color: isHovered ? AppColors.primary : AppColors.border,
         ),
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -89,7 +89,20 @@ class _CardHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: Text(reading.name, style: AppTextStyles.headlineSm)),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(reading.name, style: AppTextStyles.headlineSm),
+              Text(
+                reading.tenantName,
+                style: AppTextStyles.labelCaps.copyWith(
+                  color: AppColors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
         const MeterTypePill(label: 'BTU'),
       ],
     );

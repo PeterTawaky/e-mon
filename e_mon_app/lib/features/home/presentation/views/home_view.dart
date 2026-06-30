@@ -6,11 +6,19 @@ import '../../../../core/services/networking/dio_consumer.dart';
 import '../../data/repositories/home_repo_impl.dart';
 import '../../data/repositories/home_repo.dart';
 import '../managers/home_cubit.dart';
+import '../../../tenants/data/repositories/tenants_repo.dart';
+import '../../../tenants/data/repositories/tenants_repo_impl.dart';
 
 class HomeView extends StatelessWidget {
-  const HomeView({super.key, this.homeRepo, this.enableLiveUpdates = true});
+  const HomeView({
+    super.key,
+    this.homeRepo,
+    this.tenantsRepo,
+    this.enableLiveUpdates = true,
+  });
 
   final HomeRepo? homeRepo;
+  final TenantsRepo? tenantsRepo;
   final bool enableLiveUpdates;
 
   @override
@@ -25,7 +33,9 @@ class HomeView extends StatelessWidget {
         }
         return cubit;
       },
-      child: const HomeViewBody(),
+      child: HomeViewBody(
+        tenantsRepo: tenantsRepo ?? TenantsRepoImpl(DioConsumer()),
+      ),
     );
   }
 }

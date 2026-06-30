@@ -9,13 +9,13 @@ class ApiEndpoints {
   static const String readingsMonthly = '/readings/monthly';
 
   // Auth
-  static const String login = '/auth/login';
+  static const String login = '/auth/admin/login';
 
-  // Users
-  static const String users = '/users';
+  // Admins
+  static const String admins = '/admins';
 
-  // Auth
-  static const String legacyLogin = '/system-users/login';
+  // Tenants
+  static const String tenants = '/tenants';
 
   // Companies
   static const String companies = '/companies';
@@ -126,8 +126,4 @@ class ApiEndpoints {
       '/business-units/$unitId/tenders/$tenderId/reject';
   static String tenderComplete(int unitId, int tenderId) =>
       '/business-units/$unitId/tenders/$tenderId/complete';
-
-  // System Users
-  static const String systemUsers = '/system-users';
-  static String systemUser(int id) => '/system-users/$id';
 }

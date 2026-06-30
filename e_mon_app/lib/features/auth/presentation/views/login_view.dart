@@ -61,7 +61,7 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                 decoration: BoxDecoration(
                   color: AppColors.card,
                   borderRadius: AppRadius.lgBorder,
-                  border: Border.all(color: AppColors.goldBorder),
+                  border: Border.all(color: AppColors.border),
                   boxShadow: [
                     BoxShadow(
                       color: AppColors.primary.withValues(alpha: 0.10),
@@ -77,7 +77,7 @@ class _LoginViewBodyState extends State<_LoginViewBody> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Image.asset(Assets.imagesLogo, height: 180),
+                        Image.asset(Assets.imagesAppLogo, height: 180),
                         // const SizedBox(height: AppSpacing.lg),
                         Text(
                           'Welcome Back',

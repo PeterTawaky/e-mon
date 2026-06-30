@@ -12,15 +12,22 @@ import 'package:e_mon_app/features/reports/domain/services/energy_report_calcula
 import 'package:e_mon_app/features/reports/domain/services/report_pdf_service.dart';
 import 'package:e_mon_app/features/reports/presentation/managers/reports_cubit.dart';
 import 'package:e_mon_app/features/reports/presentation/views/widgets/reports_module.dart';
-import 'package:e_mon_app/features/users/data/repositories/users_repo_impl.dart';
-import 'package:e_mon_app/features/users/presentation/managers/users_cubit.dart';
+import 'package:e_mon_app/features/admins/data/repositories/admins_repo_impl.dart';
+import 'package:e_mon_app/features/admins/presentation/managers/admins_cubit.dart';
+import 'package:e_mon_app/features/tenants/data/models/tenant_model.dart';
+import 'package:e_mon_app/features/tenants/data/repositories/tenants_repo.dart';
+import 'package:e_mon_app/features/tenants/data/repositories/tenants_repo_impl.dart';
+import 'package:e_mon_app/features/tenants/presentation/managers/tenants_cubit.dart';
+import 'package:e_mon_app/features/tenants/presentation/views/widgets/tenants_module.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class HomeViewBody extends StatefulWidget {
-  const HomeViewBody({super.key});
+  const HomeViewBody({super.key, required this.tenantsRepo});
+
+  final TenantsRepo tenantsRepo;
 
   @override
   State<HomeViewBody> createState() => _HomeViewBodyState();
@@ -53,6 +60,7 @@ class _HomeViewBodyState extends State<HomeViewBody> {
                   selectedDestination: selectedDestination,
                   selectedReportKind: _selectedReportKind,
                   onReportSelected: _openReport,
+                  tenantsRepo: widget.tenantsRepo,
                 );
 
                 if (isCompact) {
@@ -103,19 +111,33 @@ class _DashboardContent extends StatelessWidget {
     required this.selectedDestination,
     required this.selectedReportKind,
     required this.onReportSelected,
+    required this.tenantsRepo,
   });
 
   final _MenuDestination selectedDestination;
   final ReportKind selectedReportKind;
   final ValueChanged<ReportKind> onReportSelected;
+  final TenantsRepo tenantsRepo;
 
   @override
   Widget build(BuildContext context) {
-    if (selectedDestination == _MenuDestination.users) {
+    if (selectedDestination == _MenuDestination.admins) {
       return BlocProvider(
-        create: (_) => UsersCubit(UsersRepoImpl(DioConsumer()))..loadUsers(),
-        child: const _UsersModule(),
+        create: (_) => AdminsCubit(AdminsRepoImpl(DioConsumer()))..loadAdmins(),
+        child: const _AdminsModule(),
       );
+    }
+
+    if (selectedDestination == _MenuDestination.tenants) {
+      return BlocProvider(
+        create: (_) =>
+            TenantsCubit(TenantsRepoImpl(DioConsumer()))..loadTenants(),
+        child: const TenantsModule(),
+      );
+    }
+
+    if (selectedDestination == _MenuDestination.liveMonitoring) {
+      return const _LiveMonitoringModule();
     }
 
     if (selectedDestination == _MenuDestination.reports) {
@@ -149,7 +171,7 @@ class _DashboardContent extends StatelessWidget {
             children: [
               _Header(onReportSelected: onReportSelected),
               const SizedBox(height: AppSpacing.lg),
-              _LiveChartPanel(state: state),
+              _LiveChartPanel(state: state, tenantsRepo: tenantsRepo),
             ],
           ),
         );
@@ -167,7 +189,7 @@ enum _MenuDestination {
   reports('Reports', Icons.description_rounded),
   billing('Billing', Icons.receipt_long_rounded),
   alerts('Alerts', Icons.notifications_active_rounded),
-  users('Users', Icons.manage_accounts_rounded),
+  admins('Admins', Icons.admin_panel_settings_rounded),
   settings('Settings', Icons.settings_rounded),
   logout('Logout', Icons.logout_rounded);
 
@@ -194,7 +216,7 @@ class _SideMenu extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surfaceContainerLowest,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(color: AppColors.goldBorder),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
             color: AppColors.primary.withValues(alpha: 0.08),
@@ -246,7 +268,7 @@ class _TopMenuBar extends StatelessWidget {
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: AppColors.surfaceContainerLowest,
-        border: Border(bottom: BorderSide(color: AppColors.goldBorder)),
+        border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -290,18 +312,15 @@ class _MenuBrand extends StatelessWidget {
         Container(
           width: compact ? 40 : 48,
           height: compact ? 40 : 48,
+          padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.12),
+            color: AppColors.surfaceContainerLowest,
             borderRadius: AppRadius.lgBorder,
             border: Border.all(
               color: AppColors.primary.withValues(alpha: 0.36),
             ),
           ),
-          child: const Icon(
-            Icons.bolt_rounded,
-            color: AppColors.primary,
-            size: 26,
-          ),
+          child: Image.asset(Assets.imagesAppLogo, fit: BoxFit.contain),
         ),
         const SizedBox(width: AppSpacing.md),
         Column(
@@ -427,7 +446,7 @@ class _ComingSoonModule extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.card,
             borderRadius: AppRadius.lgBorder,
-            border: Border.all(color: AppColors.goldBorder),
+            border: Border.all(color: AppColors.border),
             boxShadow: [
               BoxShadow(
                 color: AppColors.primary.withValues(alpha: 0.08),
@@ -478,14 +497,14 @@ class _ComingSoonModule extends StatelessWidget {
   }
 }
 
-class _UsersModule extends StatefulWidget {
-  const _UsersModule();
+class _AdminsModule extends StatefulWidget {
+  const _AdminsModule();
 
   @override
-  State<_UsersModule> createState() => _UsersModuleState();
+  State<_AdminsModule> createState() => _AdminsModuleState();
 }
 
-class _UsersModuleState extends State<_UsersModule> {
+class _AdminsModuleState extends State<_AdminsModule> {
   final TextEditingController _userController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final FocusNode _userFocusNode = FocusNode();
@@ -502,9 +521,9 @@ class _UsersModuleState extends State<_UsersModule> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<UsersCubit, UsersState>(
+    return BlocConsumer<AdminsCubit, AdminsState>(
       listener: (context, state) {
-        if (state.status == UsersStatus.success && state.message != null) {
+        if (state.status == AdminsStatus.success && state.message != null) {
           _userController.clear();
           _passwordController.clear();
         }
@@ -516,18 +535,18 @@ class _UsersModuleState extends State<_UsersModule> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Users',
+                'Admins',
                 style: AppTextStyles.displayLg.copyWith(fontSize: 40),
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'Create dashboard users and review existing system access.',
+                'Create dashboard admins and review existing admin access.',
                 style: AppTextStyles.bodyLg.copyWith(
                   color: AppColors.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              _UserCreationPanel(
+              _AdminCreationPanel(
                 userController: _userController,
                 passwordController: _passwordController,
                 userFocusNode: _userFocusNode,
@@ -536,7 +555,7 @@ class _UsersModuleState extends State<_UsersModule> {
                 onSubmit: _submit,
               ),
               const SizedBox(height: AppSpacing.lg),
-              _UsersListPanel(state: state),
+              _AdminsListPanel(state: state),
             ],
           ),
         );
@@ -545,15 +564,15 @@ class _UsersModuleState extends State<_UsersModule> {
   }
 
   void _submit() {
-    context.read<UsersCubit>().createUser(
+    context.read<AdminsCubit>().createAdmin(
       user: _userController.text,
       password: _passwordController.text,
     );
   }
 }
 
-class _UserCreationPanel extends StatelessWidget {
-  const _UserCreationPanel({
+class _AdminCreationPanel extends StatelessWidget {
+  const _AdminCreationPanel({
     required this.userController,
     required this.passwordController,
     required this.userFocusNode,
@@ -566,18 +585,18 @@ class _UserCreationPanel extends StatelessWidget {
   final TextEditingController passwordController;
   final FocusNode userFocusNode;
   final FocusNode passwordFocusNode;
-  final UsersState state;
+  final AdminsState state;
   final VoidCallback onSubmit;
 
   @override
   Widget build(BuildContext context) {
-    final isSubmitting = state.status == UsersStatus.submitting;
+    final isSubmitting = state.status == AdminsStatus.submitting;
 
     return DecoratedBox(
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(color: AppColors.goldBorder),
+        border: Border.all(color: AppColors.border),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -592,7 +611,7 @@ class _UserCreationPanel extends StatelessWidget {
                     color: AppColors.primary,
                   ),
                   const SizedBox(width: AppSpacing.sm),
-                  Text('Generate New User', style: AppTextStyles.headlineSm),
+                  Text('Generate New Admin', style: AppTextStyles.headlineSm),
                 ],
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -638,16 +657,16 @@ class _UserCreationPanel extends StatelessWidget {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.add_rounded),
-                      label: Text(isSubmitting ? 'Creating' : 'Create User'),
+                      label: Text(isSubmitting ? 'Creating' : 'Create Admin'),
                     ),
                   ),
                 ],
               ),
               if (state.message != null) ...[
                 const SizedBox(height: AppSpacing.md),
-                _UsersMessage(
+                _AdminsMessage(
                   message: state.message!,
-                  isError: state.status == UsersStatus.failure,
+                  isError: state.status == AdminsStatus.failure,
                 ),
               ],
             ],
@@ -658,8 +677,8 @@ class _UserCreationPanel extends StatelessWidget {
   }
 }
 
-class _UsersMessage extends StatelessWidget {
-  const _UsersMessage({required this.message, required this.isError});
+class _AdminsMessage extends StatelessWidget {
+  const _AdminsMessage({required this.message, required this.isError});
 
   final String message;
   final bool isError;
@@ -685,10 +704,10 @@ class _UsersMessage extends StatelessWidget {
   }
 }
 
-class _UsersListPanel extends StatelessWidget {
-  const _UsersListPanel({required this.state});
+class _AdminsListPanel extends StatelessWidget {
+  const _AdminsListPanel({required this.state});
 
-  final UsersState state;
+  final AdminsState state;
 
   @override
   Widget build(BuildContext context) {
@@ -696,7 +715,7 @@ class _UsersListPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(color: AppColors.goldBorder),
+        border: Border.all(color: AppColors.border),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -706,43 +725,42 @@ class _UsersListPanel extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('System Users', style: AppTextStyles.headlineSm),
+                Text('Admins', style: AppTextStyles.headlineSm),
                 Text(
-                  '${state.users.length} users',
+                  '${state.admins.length} admins',
                   style: AppTextStyles.labelCaps,
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.md),
-            if (state.status == UsersStatus.loading)
+            if (state.status == AdminsStatus.loading)
               const Center(child: CircularProgressIndicator())
-            else if (state.users.isEmpty)
+            else if (state.admins.isEmpty)
               _EmptyChartMessage(
-                icon: Icons.manage_accounts_rounded,
-                title: 'No users yet',
-                message: 'Create the first system user above.',
+                icon: Icons.admin_panel_settings_rounded,
+                title: 'No admins yet',
+                message: 'Create the first admin above.',
               )
             else
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: DataTable(
                   columns: const [
-                    DataColumn(label: Text('User')),
-                    DataColumn(label: Text('Password')),
+                    DataColumn(label: Text('Admin')),
                     DataColumn(label: Text('Created')),
                     DataColumn(label: Text('Actions')),
                   ],
-                  rows: state.users.map((user) {
+                  rows: state.admins.map((admin) {
                     return DataRow(
                       cells: [
-                        DataCell(Text(user.user)),
-                        DataCell(Text(user.password)),
-                        DataCell(Text(_formatDate(user.createdAt))),
+                        DataCell(Text(admin.user)),
+                        DataCell(Text(_formatDate(admin.createdAt))),
                         DataCell(
                           _DeleteUserButton(
-                            userName: user.user,
-                            onConfirmed: () =>
-                                context.read<UsersCubit>().deleteUser(user.id),
+                            userName: admin.user,
+                            onConfirmed: () => context
+                                .read<AdminsCubit>()
+                                .deleteAdmin(admin.id),
                           ),
                         ),
                       ],
@@ -805,9 +823,9 @@ class _DeleteUserButtonState extends State<_DeleteUserButton> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Delete User'),
+          title: const Text('Delete Admin'),
           content: Text(
-            'Are you sure you want to delete "${widget.userName}"? This action cannot be undone.',
+            'Are you sure you want to delete admin "${widget.userName}"? This action cannot be undone.',
           ),
           actions: [
             TextButton(
@@ -854,7 +872,7 @@ class _Header extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Image.asset(Assets.imagesLogo, height: 80),
+                    Image.asset(Assets.imagesAppLogo, height: 80),
                     Expanded(
                       child: Text(
                         'WattWise Dashboard',
@@ -946,20 +964,291 @@ class _GhostActionButton extends StatelessWidget {
   }
 }
 
-class _LiveChartPanel extends StatelessWidget {
-  const _LiveChartPanel({required this.state});
+class _LiveMonitoringModule extends StatefulWidget {
+  const _LiveMonitoringModule();
 
+  @override
+  State<_LiveMonitoringModule> createState() => _LiveMonitoringModuleState();
+}
+
+class _LiveMonitoringModuleState extends State<_LiveMonitoringModule> {
+  late final Future<List<TenantModel>> _tenantsFuture;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _tenantsFuture = TenantsRepoImpl(DioConsumer()).getTenants();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<HomeCubit, HomeState>(
+      builder: (context, state) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.containerPaddingDesktop),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Wrap(
+                spacing: AppSpacing.lg,
+                runSpacing: AppSpacing.md,
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Live Monitoring',
+                        style: AppTextStyles.displayLg.copyWith(fontSize: 40),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Live trend charts for each tenant BTU meter.',
+                        style: AppTextStyles.bodyLg.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      _RangeSelector(selectedRange: state.selectedRange),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        _formatPeriodLabel(state.selectedRange),
+                        style: AppTextStyles.bodyMd.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              FutureBuilder<List<TenantModel>>(
+                future: _tenantsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return const SizedBox(
+                      height: 360,
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  if (snapshot.hasError) {
+                    return const SizedBox(
+                      height: 360,
+                      child: _EmptyChartMessage(
+                        icon: Icons.wifi_off_rounded,
+                        title: 'Unable to load tenants',
+                        message:
+                            'Live monitoring charts are created from tenants.',
+                      ),
+                    );
+                  }
+
+                  final tenants = snapshot.data ?? const <TenantModel>[];
+                  final filteredTenants = _filterTenants(tenants);
+                  if (tenants.isEmpty) {
+                    return const SizedBox(
+                      height: 360,
+                      child: _EmptyChartMessage(
+                        icon: Icons.group_rounded,
+                        title: 'No tenant charts yet',
+                        message:
+                            'Create tenants to generate one live chart each.',
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _LiveMonitoringControls(
+                        controller: _searchController,
+                        tenantCount: tenants.length,
+                        visibleCount: filteredTenants.length,
+                        onChanged: (value) {
+                          setState(() => _searchQuery = value.trim());
+                        },
+                        onClear: _searchQuery.isEmpty
+                            ? null
+                            : () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      if (filteredTenants.isEmpty)
+                        const SizedBox(
+                          height: 260,
+                          child: _EmptyChartMessage(
+                            icon: Icons.search_off_rounded,
+                            title: 'No tenants match',
+                            message: 'Adjust the search text and try again.',
+                          ),
+                        )
+                      else
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final crossAxisCount =
+                                _liveMonitoringCrossAxisCount(
+                                  constraints.maxWidth,
+                                );
+
+                            return GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: filteredTenants.length,
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: crossAxisCount,
+                                    mainAxisSpacing: AppSpacing.md,
+                                    crossAxisSpacing: AppSpacing.md,
+                                    mainAxisExtent: 340,
+                                  ),
+                              itemBuilder: (context, index) {
+                                return _TenantLiveChartPanel(
+                                  tenant: filteredTenants[index],
+                                  state: state,
+                                );
+                              },
+                            );
+                          },
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  List<TenantModel> _filterTenants(List<TenantModel> tenants) {
+    final query = _searchQuery.toLowerCase();
+    if (query.isEmpty) {
+      return tenants;
+    }
+    return tenants
+        .where((tenant) => tenant.user.toLowerCase().contains(query))
+        .toList();
+  }
+}
+
+int _liveMonitoringCrossAxisCount(double width) {
+  if (width >= 1380) {
+    return 4;
+  }
+  if (width >= 1040) {
+    return 3;
+  }
+  if (width >= 680) {
+    return 2;
+  }
+  return 1;
+}
+
+class _LiveMonitoringControls extends StatelessWidget {
+  const _LiveMonitoringControls({
+    required this.controller,
+    required this.tenantCount,
+    required this.visibleCount,
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  final TextEditingController controller;
+  final int tenantCount;
+  final int visibleCount;
+  final ValueChanged<String> onChanged;
+  final VoidCallback? onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: AppRadius.lgBorder,
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Wrap(
+          spacing: AppSpacing.md,
+          runSpacing: AppSpacing.sm,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          alignment: WrapAlignment.spaceBetween,
+          children: [
+            SizedBox(
+              width: 360,
+              child: TextField(
+                controller: controller,
+                onChanged: onChanged,
+                decoration: InputDecoration(
+                  labelText: 'Search tenants',
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  suffixIcon: onClear == null
+                      ? null
+                      : IconButton(
+                          tooltip: 'Clear search',
+                          onPressed: onClear,
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                ),
+              ),
+            ),
+            Text(
+              '$visibleCount of $tenantCount charts',
+              style: AppTextStyles.labelCaps.copyWith(
+                color: AppColors.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TenantLiveChartPanel extends StatelessWidget {
+  const _TenantLiveChartPanel({required this.tenant, required this.state});
+
+  final TenantModel tenant;
   final HomeState state;
 
   @override
   Widget build(BuildContext context) {
-    final chartPoints = _buildChartPoints(state.readings, state.selectedRange);
+    final readings = state.readings
+        .where((reading) => reading.tenantId == tenant.id)
+        .toList();
+    final points = _buildChartPoints(readings, state.selectedRange);
+    final visibleReadings = readings.where((reading) {
+      final start = state.selectedRange.startDate(DateTime.now());
+      return !reading.createdAt.isBefore(start);
+    }).toList();
+    final total = visibleReadings.fold<double>(
+      0,
+      (sum, reading) => sum + reading.relativeValue,
+    );
 
     return DecoratedBox(
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(color: AppColors.goldBorder),
+        border: Border.all(color: AppColors.border),
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -971,17 +1260,52 @@ class _LiveChartPanel extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _ChartToolbar(state: state),
-            const SizedBox(height: AppSpacing.xl),
-            SizedBox(
-              height: 420,
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    tenant.user,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.headlineSm,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                _TenantMetricPill(
+                  label: 'Readings',
+                  value: visibleReadings.length.toString(),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'BTU meter trend',
+                    style: AppTextStyles.bodyMd.copyWith(
+                      color: AppColors.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                Text(
+                  '${total.toStringAsFixed(1)} kWh',
+                  style: AppTextStyles.dataTabular.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Expanded(
               child: AnimatedSwitcher(
                 duration: AppDurations.t500,
-                child: _buildChartContent(context, chartPoints),
+                child: _buildTenantChartContent(readings, points),
               ),
             ),
           ],
@@ -990,7 +1314,10 @@ class _LiveChartPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildChartContent(BuildContext context, List<_ChartPoint> points) {
+  Widget _buildTenantChartContent(
+    List<ReadingModel> readings,
+    List<_ChartPoint> points,
+  ) {
     if (state.status == HomeStatus.loading && state.readings.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -1003,11 +1330,11 @@ class _LiveChartPanel extends StatelessWidget {
       );
     }
 
-    if (state.readings.isEmpty) {
-      return const _EmptyChartMessage(
+    if (readings.isEmpty) {
+      return _EmptyChartMessage(
         icon: Icons.show_chart_rounded,
-        title: 'Waiting for device data',
-        message: 'The simulation service will add a new reading each minute.',
+        title: 'Waiting for ${tenant.user} readings',
+        message: 'This tenant has a BTU meter but no readings yet.',
       );
     }
 
@@ -1015,13 +1342,176 @@ class _LiveChartPanel extends StatelessWidget {
   }
 }
 
-class _ChartToolbar extends StatelessWidget {
-  const _ChartToolbar({required this.state});
+class _TenantMetricPill extends StatelessWidget {
+  const _TenantMetricPill({required this.label, required this.value});
 
-  final HomeState state;
+  final String label;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainerLowest,
+        borderRadius: AppRadius.fullBorder,
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: AppTextStyles.labelCaps.copyWith(
+                color: AppColors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Text(value, style: AppTextStyles.dataTabular),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LiveChartPanel extends StatefulWidget {
+  const _LiveChartPanel({required this.state, required this.tenantsRepo});
+
+  final HomeState state;
+  final TenantsRepo tenantsRepo;
+
+  @override
+  State<_LiveChartPanel> createState() => _LiveChartPanelState();
+}
+
+class _LiveChartPanelState extends State<_LiveChartPanel> {
+  late final Future<List<TenantModel>> _tenantsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _tenantsFuture = widget.tenantsRepo.getTenants();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<TenantModel>>(
+      future: _tenantsFuture,
+      builder: (context, snapshot) {
+        final tenantNames = {
+          for (final tenant in snapshot.data ?? const <TenantModel>[])
+            tenant.id: tenant.user,
+        };
+        final bars = _buildLatestTenantBars(widget.state.readings, tenantNames);
+
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: AppRadius.lgBorder,
+            border: Border.all(color: AppColors.border),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.surfaceContainerLow,
+                AppColors.card,
+                AppColors.surfaceContainerLowest,
+              ],
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _DashboardBarToolbar(state: widget.state, bars: bars),
+                const SizedBox(height: AppSpacing.xl),
+                SizedBox(
+                  height: 420,
+                  child: AnimatedSwitcher(
+                    duration: AppDurations.t500,
+                    child: _buildChartContent(
+                      context,
+                      bars,
+                      isLoadingTenants:
+                          snapshot.connectionState != ConnectionState.done,
+                      tenantLoadFailed: snapshot.hasError,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildChartContent(
+    BuildContext context,
+    List<_TenantBarPoint> bars, {
+    required bool isLoadingTenants,
+    required bool tenantLoadFailed,
+  }) {
+    if ((widget.state.status == HomeStatus.loading &&
+            widget.state.readings.isEmpty) ||
+        isLoadingTenants) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (tenantLoadFailed) {
+      return const _EmptyChartMessage(
+        icon: Icons.wifi_off_rounded,
+        title: 'Unable to load tenants',
+        message: 'Tenant names are required for this dashboard chart.',
+      );
+    }
+
+    if (widget.state.status == HomeStatus.failure &&
+        widget.state.readings.isEmpty) {
+      return _EmptyChartMessage(
+        icon: Icons.wifi_off_rounded,
+        title: 'Unable to load live readings',
+        message:
+            widget.state.errorMessage ?? 'Check the API server and try again.',
+      );
+    }
+
+    if (widget.state.readings.isEmpty) {
+      return const _EmptyChartMessage(
+        icon: Icons.bar_chart_rounded,
+        title: 'Waiting for tenant readings',
+        message: 'Tenant accumulative values will appear here when available.',
+      );
+    }
+
+    if (bars.isEmpty) {
+      return const _EmptyChartMessage(
+        icon: Icons.bar_chart_rounded,
+        title: 'No tenant values yet',
+        message: 'No latest accumulative values are available.',
+      );
+    }
+
+    return _TenantAccumulationBarChart(points: bars);
+  }
+}
+
+class _DashboardBarToolbar extends StatelessWidget {
+  const _DashboardBarToolbar({required this.state, required this.bars});
+
+  final HomeState state;
+  final List<_TenantBarPoint> bars;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = bars.fold<double>(0, (sum, bar) => sum + bar.value);
+
     return Wrap(
       spacing: AppSpacing.md,
       runSpacing: AppSpacing.md,
@@ -1034,14 +1524,20 @@ class _ChartToolbar extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Relative Value', style: AppTextStyles.headlineSm),
+                Text(
+                  'Latest Accumulative Values',
+                  style: AppTextStyles.headlineSm,
+                ),
                 const SizedBox(width: AppSpacing.sm),
-                _StatsHoverButton(state: state),
+                _TenantMetricPill(
+                  label: 'Tenants',
+                  value: bars.length.toString(),
+                ),
               ],
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              _formatPeriodLabel(state.selectedRange),
+              '${total.toStringAsFixed(1)} kWh total across latest tenant readings',
               style: AppTextStyles.bodyMd.copyWith(
                 color: AppColors.onSurfaceVariant,
               ),
@@ -1066,8 +1562,126 @@ class _ChartToolbar extends StatelessWidget {
             ),
           ],
         ),
-        _RangeSelector(selectedRange: state.selectedRange),
       ],
+    );
+  }
+}
+
+class _TenantAccumulationBarChart extends StatelessWidget {
+  const _TenantAccumulationBarChart({required this.points});
+
+  final List<_TenantBarPoint> points;
+
+  @override
+  Widget build(BuildContext context) {
+    final maxValue = points
+        .map((point) => point.value)
+        .reduce((a, b) => a > b ? a : b);
+    final yPadding = maxValue <= 0 ? 10.0 : maxValue * 0.18;
+
+    return BarChart(
+      BarChartData(
+        minY: 0,
+        maxY: maxValue + yPadding,
+        alignment: BarChartAlignment.spaceAround,
+        gridData: FlGridData(
+          drawVerticalLine: false,
+          horizontalInterval: _chartInterval(0, maxValue),
+          getDrawingHorizontalLine: (value) {
+            return FlLine(
+              color: AppColors.border.withValues(alpha: 0.72),
+              strokeWidth: 1,
+            );
+          },
+        ),
+        borderData: FlBorderData(show: false),
+        titlesData: FlTitlesData(
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 58,
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  value.toStringAsFixed(0),
+                  style: AppTextStyles.dataTabular.copyWith(
+                    color: AppColors.mutedText,
+                  ),
+                );
+              },
+            ),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 46,
+              getTitlesWidget: (value, meta) {
+                final index = value.round();
+                if (index < 0 || index >= points.length) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(top: AppSpacing.sm),
+                  child: SizedBox(
+                    width: 80,
+                    child: Text(
+                      points[index].label,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.labelCaps.copyWith(
+                        color: AppColors.mutedText,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        barTouchData: BarTouchData(
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipColor: (_) => AppColors.overlay,
+            tooltipBorder: const BorderSide(color: AppColors.border),
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              final point = points[group.x.toInt()];
+              return BarTooltipItem(
+                '${point.label}\n${point.value.toStringAsFixed(2)} kWh\n${point.timestamp}',
+                AppTextStyles.bodyMd.copyWith(color: AppColors.onSurface),
+              );
+            },
+          ),
+        ),
+        barGroups: [
+          for (var index = 0; index < points.length; index++)
+            BarChartGroupData(
+              x: index,
+              barRods: [
+                BarChartRodData(
+                  toY: points[index].value,
+                  width: points.length > 10 ? 18 : 28,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(6),
+                  ),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.primary,
+                      AppColors.primary.withValues(alpha: 0.58),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+      duration: AppDurations.t500,
     );
   }
 }
@@ -1160,7 +1774,7 @@ class _StatsHoverButtonState extends State<_StatsHoverButton> {
                 : AppColors.surfaceContainerLowest,
             borderRadius: AppRadius.fullBorder,
             border: Border.all(
-              color: _isHovered ? AppColors.primary : AppColors.goldBorder,
+              color: _isHovered ? AppColors.primary : AppColors.border,
             ),
             boxShadow: _isHovered
                 ? [
@@ -1357,7 +1971,7 @@ class _HoverBorderState extends State<_HoverBorder> {
           color: AppColors.surfaceContainerLow.withValues(alpha: 0.72),
           borderRadius: AppRadius.regularBorder,
           border: Border.all(
-            color: _isHovered ? AppColors.primary : AppColors.goldBorder,
+            color: _isHovered ? AppColors.primary : AppColors.border,
           ),
           boxShadow: _isHovered
               ? [
@@ -1490,7 +2104,7 @@ class _TrendLineChart extends StatelessWidget {
         lineTouchData: LineTouchData(
           touchTooltipData: LineTouchTooltipData(
             getTooltipColor: (_) => AppColors.overlay,
-            tooltipBorder: const BorderSide(color: AppColors.goldBorder),
+            tooltipBorder: const BorderSide(color: AppColors.border),
             getTooltipItems: (spots) {
               return spots.map((spot) {
                 if (spot.isNull()) {
@@ -1588,6 +2202,45 @@ class _ChartPoint {
   final String label;
   final double? value;
   final String tooltip;
+}
+
+class _TenantBarPoint {
+  const _TenantBarPoint({
+    required this.tenantId,
+    required this.label,
+    required this.value,
+    required this.timestamp,
+  });
+
+  final int tenantId;
+  final String label;
+  final double value;
+  final String timestamp;
+}
+
+List<_TenantBarPoint> _buildLatestTenantBars(
+  List<ReadingModel> readings,
+  Map<int, String> tenantNames,
+) {
+  final latestByTenant = <int, ReadingModel>{};
+
+  for (final reading in readings) {
+    final current = latestByTenant[reading.tenantId];
+    if (current == null || reading.createdAt.isAfter(current.createdAt)) {
+      latestByTenant[reading.tenantId] = reading;
+    }
+  }
+
+  final points = latestByTenant.values.map((reading) {
+    return _TenantBarPoint(
+      tenantId: reading.tenantId,
+      label: tenantNames[reading.tenantId] ?? 'Unknown tenant',
+      value: reading.accumulativeValue,
+      timestamp: _formatDate(reading.createdAt),
+    );
+  }).toList()..sort((a, b) => a.tenantId.compareTo(b.tenantId));
+
+  return points;
 }
 
 List<_ChartPoint> _buildChartPoints(

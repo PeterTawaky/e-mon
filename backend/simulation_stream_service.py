@@ -8,7 +8,7 @@ from datetime import datetime
 
 
 class AccumulativeReadingStreamService:
-    """Creates simulated device readings while the API server is running."""
+    """Creates simulated device readings per tenant while the API server is running."""
 
     def __init__(self, connection_factory: Callable, interval_seconds: int = 60):
         self._connection_factory = connection_factory
@@ -39,42 +39,54 @@ class AccumulativeReadingStreamService:
     def _run(self) -> None:
         while not self._stop_event.is_set():
             try:
-                self._create_reading()
+                self._create_readings_for_all_tenants()
             except Exception as exc:
-                print(f"[simulation] failed to create reading: {exc}")
+                print(f"[simulation] failed to create readings: {exc}")
 
             self._stop_event.wait(self._interval_seconds)
 
-    def _create_reading(self) -> None:
+    def _create_readings_for_all_tenants(self) -> None:
         conn = self._connection_factory()
         try:
             cursor = conn.cursor()
-            cursor.execute(
-                """
-                SELECT TOP 1 accumulative_value
-                FROM AccumulativeReadings
-                WHERE component_name = ?
-                ORDER BY id DESC
-                """,
-                self._component_name,
-            )
-            row = cursor.fetchone()
-            past_accumulative_value = float(row[0]) if row else 0.0
-            next_accumulative_value = past_accumulative_value + self._next_delta()
 
-            cursor.execute(
-                """
-                INSERT INTO AccumulativeReadings (
-                    component_name,
-                    accumulative_value,
-                    past_accumulative_value
+            cursor.execute("SELECT id FROM Tenants ORDER BY id")
+            tenant_ids = [row[0] for row in cursor.fetchall()]
+
+            if not tenant_ids:
+                return
+
+            for tenant_id in tenant_ids:
+                cursor.execute(
+                    """
+                    SELECT TOP 1 accumulative_value
+                    FROM AccumulativeReadings
+                    WHERE component_name = ? AND tenant_id = ?
+                    ORDER BY id DESC
+                    """,
+                    self._component_name,
+                    tenant_id,
                 )
-                VALUES (?, ?, ?)
-                """,
-                self._component_name,
-                next_accumulative_value,
-                past_accumulative_value,
-            )
+                row = cursor.fetchone()
+                past_accumulative_value = float(row[0]) if row else 0.0
+                next_accumulative_value = past_accumulative_value + self._next_delta()
+
+                cursor.execute(
+                    """
+                    INSERT INTO AccumulativeReadings (
+                        tenant_id,
+                        component_name,
+                        accumulative_value,
+                        past_accumulative_value
+                    )
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    tenant_id,
+                    self._component_name,
+                    next_accumulative_value,
+                    past_accumulative_value,
+                )
+
             conn.commit()
         finally:
             conn.close()

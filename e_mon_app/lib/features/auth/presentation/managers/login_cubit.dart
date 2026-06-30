@@ -28,6 +28,16 @@ class LoginCubit extends Cubit<LoginState> {
         user: user,
         password: password,
       );
+      if (authenticatedUser.role != 'admin') {
+        emit(
+          state.copyWith(
+            status: LoginStatus.failure,
+            errorMessage: 'Only admin users can access the system.',
+          ),
+        );
+        return;
+      }
+
       emit(
         state.copyWith(
           status: LoginStatus.success,

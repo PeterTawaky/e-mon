@@ -11,12 +11,14 @@ class ReportsRepoImpl implements ReportsRepo {
   @override
   Future<List<ReadingModel>> getRangeReadings({
     required DateTime startDate,
+    required int tenantId,
     DateTime? endDate,
   }) async {
     final response = await _apiConsumer.get(
       ApiEndpoints.readingsRange,
       queryParameters: {
         'start_date': _formatApiDate(startDate),
+        'tenant_id': tenantId,
         if (endDate != null) 'end_date': _formatApiDate(endDate),
       },
     );
@@ -25,8 +27,11 @@ class ReportsRepoImpl implements ReportsRepo {
   }
 
   @override
-  Future<List<ReadingModel>> getMonthlyReadings() async {
-    final response = await _apiConsumer.get(ApiEndpoints.readingsMonthly);
+  Future<List<ReadingModel>> getMonthlyReadings({required int tenantId}) async {
+    final response = await _apiConsumer.get(
+      ApiEndpoints.readingsMonthly,
+      queryParameters: {'tenant_id': tenantId},
+    );
 
     return _parseReadings(response);
   }

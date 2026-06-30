@@ -39,9 +39,22 @@ class ReportsCubit extends Cubit<ReportsState> {
 
   Future<void> generateReport({
     required EnergyReportRateInput rates,
+    required int? tenantId,
     DateTime? startDate,
     DateTime? endDate,
   }) async {
+    if (tenantId == null) {
+      emit(
+        state.copyWith(
+          status: ReportsStatus.failure,
+          message: 'Choose a tenant before generating the report.',
+          clearReport: true,
+          clearSavedPath: true,
+        ),
+      );
+      return;
+    }
+
     if (state.kind == ReportKind.specific && startDate == null) {
       emit(
         state.copyWith(
@@ -84,9 +97,10 @@ class ReportsCubit extends Cubit<ReportsState> {
           ? DateTime(now.year, now.month, now.day)
           : endDate;
       final readings = state.kind == ReportKind.monthly
-          ? await _reportsRepo.getMonthlyReadings()
+          ? await _reportsRepo.getMonthlyReadings(tenantId: tenantId)
           : await _reportsRepo.getRangeReadings(
               startDate: startDate!,
+              tenantId: tenantId,
               endDate: endDate,
             );
 

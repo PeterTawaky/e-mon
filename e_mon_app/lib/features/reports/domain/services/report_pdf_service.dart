@@ -67,7 +67,7 @@ class ReportPdfService {
     return pw.Container(
       padding: const pw.EdgeInsets.all(18),
       decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: PdfColor.fromHex('#D4AF37'), width: 1),
+        border: pw.Border.all(color: PdfColor.fromHex('#14B8A6'), width: 1),
         borderRadius: pw.BorderRadius.circular(14),
       ),
       child: pw.Row(
@@ -108,7 +108,7 @@ class ReportPdfService {
                     style: pw.TextStyle(
                       fontSize: 18,
                       fontWeight: pw.FontWeight.bold,
-                      color: PdfColor.fromHex('#8A6A00'),
+                      color: PdfColor.fromHex('#0D9488'),
                     ),
                   ),
                   pw.Text(
@@ -133,7 +133,7 @@ class ReportPdfService {
     return pw.Container(
       padding: const pw.EdgeInsets.all(14),
       decoration: pw.BoxDecoration(
-        color: PdfColor.fromHex('#F8F3E1'),
+        color: PdfColor.fromHex('#CCFBF1'),
         borderRadius: pw.BorderRadius.circular(10),
       ),
       child: pw.Row(
@@ -171,8 +171,8 @@ class ReportPdfService {
 
   pw.Widget _buildTable(EnergyReport report) {
     return pw.TableHelper.fromTextArray(
-      border: pw.TableBorder.all(color: PdfColor.fromHex('#E5D9AF')),
-      headerDecoration: pw.BoxDecoration(color: PdfColor.fromHex('#D4AF37')),
+      border: pw.TableBorder.all(color: PdfColor.fromHex('#99F6E4')),
+      headerDecoration: pw.BoxDecoration(color: PdfColor.fromHex('#14B8A6')),
       headerStyle: pw.TextStyle(
         color: PdfColors.white,
         fontWeight: pw.FontWeight.bold,
@@ -180,12 +180,7 @@ class ReportPdfService {
       ),
       cellStyle: const pw.TextStyle(fontSize: 9),
       cellPadding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-      headers: [
-        'Time Period',
-        _reportDateRange(report),
-        'Rate',
-        'Charge',
-      ],
+      headers: ['Time Period', _reportDateRange(report), 'Rate', 'Charge'],
       data: report.rows.map((row) {
         return [
           row.timePeriod,
@@ -204,13 +199,16 @@ class ReportPdfService {
         width: 240,
         padding: const pw.EdgeInsets.all(14),
         decoration: pw.BoxDecoration(
-          border: pw.Border.all(color: PdfColor.fromHex('#D4AF37')),
+          border: pw.Border.all(color: PdfColor.fromHex('#14B8A6')),
           borderRadius: pw.BorderRadius.circular(10),
         ),
         child: pw.Column(
           children: [
-            _totalRow('Total usage', '${report.totalUsage.toStringAsFixed(2)} kWh'),
-            pw.Divider(color: PdfColor.fromHex('#D4AF37')),
+            _totalRow(
+              'Total usage',
+              '${report.totalUsage.toStringAsFixed(2)} kWh',
+            ),
+            pw.Divider(color: PdfColor.fromHex('#14B8A6')),
             _totalRow('Total charge', report.totalCharge.toStringAsFixed(2)),
           ],
         ),

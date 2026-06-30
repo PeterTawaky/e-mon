@@ -1,6 +1,7 @@
 class ReadingModel {
   const ReadingModel({
     required this.id,
+    required this.tenantId,
     required this.componentName,
     required this.accumulativeValue,
     required this.pastAccumulativeValue,
@@ -9,6 +10,7 @@ class ReadingModel {
   });
 
   final int id;
+  final int tenantId;
   final String componentName;
   final double accumulativeValue;
   final double pastAccumulativeValue;
@@ -18,6 +20,7 @@ class ReadingModel {
   factory ReadingModel.fromJson(Map<String, dynamic> json) {
     return ReadingModel(
       id: json['id'] as int,
+      tenantId: json['tenant_id'] as int,
       componentName: json['component_name'] as String,
       accumulativeValue: (json['accumulative_value'] as num).toDouble(),
       pastAccumulativeValue: (json['past_accumulative_value'] as num)

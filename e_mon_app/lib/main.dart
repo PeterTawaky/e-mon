@@ -2,5 +2,5 @@ import 'package:e_mon_app/app/my_app.dart';
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }

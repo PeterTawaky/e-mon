@@ -14,11 +14,11 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     required this.cardRadius,
     required this.controlRadius,
     required this.cardBorder,
-    required this.goldBorder,
+    required this.surfaceBorder,
     required this.tableCellPadding,
   });
 
-  factory AppThemeExtension.institutionalGold() {
+  factory AppThemeExtension.brand() {
     return const AppThemeExtension(
       sidebarWidth: AppSizes.sidebarWidth,
       pagePadding: AppSpacing.containerPaddingDesktop,
@@ -26,7 +26,7 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       cardRadius: AppRadius.lgBorder,
       controlRadius: AppRadius.regularBorder,
       cardBorder: AppBorders.subtle,
-      goldBorder: AppBorders.goldTinted,
+      surfaceBorder: AppBorders.surfaceTinted,
       tableCellPadding: EdgeInsets.symmetric(
         horizontal: AppSpacing.tableCellHorizontal,
         vertical: AppSpacing.tableCellVertical,
@@ -40,7 +40,7 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
   final BorderRadius cardRadius;
   final BorderRadius controlRadius;
   final BorderSide cardBorder;
-  final BorderSide goldBorder;
+  final BorderSide surfaceBorder;
   final EdgeInsets tableCellPadding;
 
   @override
@@ -51,7 +51,7 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
     BorderRadius? cardRadius,
     BorderRadius? controlRadius,
     BorderSide? cardBorder,
-    BorderSide? goldBorder,
+    BorderSide? surfaceBorder,
     EdgeInsets? tableCellPadding,
   }) {
     return AppThemeExtension(
@@ -61,7 +61,7 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       cardRadius: cardRadius ?? this.cardRadius,
       controlRadius: controlRadius ?? this.controlRadius,
       cardBorder: cardBorder ?? this.cardBorder,
-      goldBorder: goldBorder ?? this.goldBorder,
+      surfaceBorder: surfaceBorder ?? this.surfaceBorder,
       tableCellPadding: tableCellPadding ?? this.tableCellPadding,
     );
   }
@@ -79,7 +79,7 @@ class AppThemeExtension extends ThemeExtension<AppThemeExtension> {
       cardRadius: BorderRadius.lerp(cardRadius, other.cardRadius, t)!,
       controlRadius: BorderRadius.lerp(controlRadius, other.controlRadius, t)!,
       cardBorder: BorderSide.lerp(cardBorder, other.cardBorder, t),
-      goldBorder: BorderSide.lerp(goldBorder, other.goldBorder, t),
+      surfaceBorder: BorderSide.lerp(surfaceBorder, other.surfaceBorder, t),
       tableCellPadding: EdgeInsets.lerp(
         tableCellPadding,
         other.tableCellPadding,
@@ -94,10 +94,10 @@ double lerpDouble(double a, double b, double t) => a + (b - a) * t;
 extension AppThemeExtensionGetter on BuildContext {
   AppThemeExtension get designTokens {
     return Theme.of(this).extension<AppThemeExtension>() ??
-        AppThemeExtension.institutionalGold();
+        AppThemeExtension.brand();
   }
 }
 
 extension AppColorGetter on BuildContext {
-  Color get primaryGold => AppColors.primary;
+  Color get primaryBrand => AppColors.primary;
 }

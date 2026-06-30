@@ -54,7 +54,7 @@ abstract final class AppTheme {
       canvasColor: AppColors.floor,
       cardColor: AppColors.card,
       dividerColor: AppColors.border,
-      extensions: [AppThemeExtension.institutionalGold()],
+      extensions: [AppThemeExtension.brand()],
       textTheme: const TextTheme(
         displayLarge: AppTextStyles.displayLg,
         headlineMedium: AppTextStyles.headlineMd,
@@ -101,7 +101,7 @@ abstract final class AppTheme {
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(0, 48),
           foregroundColor: AppColors.onSurface,
-          side: const BorderSide(color: AppColors.goldBorder),
+          side: const BorderSide(color: AppColors.border),
           textStyle: AppTextStyles.labelCaps,
           shape: const RoundedRectangleBorder(
             borderRadius: AppRadius.regularBorder,
@@ -140,11 +140,11 @@ abstract final class AppTheme {
         labelStyle: AppTextStyles.labelCaps,
         border: const OutlineInputBorder(
           borderRadius: AppRadius.regularBorder,
-          borderSide: BorderSide(color: AppColors.goldBorder),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         enabledBorder: const OutlineInputBorder(
           borderRadius: AppRadius.regularBorder,
-          borderSide: BorderSide(color: AppColors.goldBorder),
+          borderSide: BorderSide(color: AppColors.border),
         ),
         focusedBorder: const OutlineInputBorder(
           borderRadius: AppRadius.regularBorder,
@@ -176,16 +176,14 @@ abstract final class AppTheme {
         surfaceTintColor: AppColors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.lgBorder,
-          side: const BorderSide(color: AppColors.goldBorder),
+          side: const BorderSide(color: AppColors.border),
         ),
       ),
       tooltipTheme: TooltipThemeData(
         decoration: const BoxDecoration(
           color: AppColors.overlay,
           borderRadius: AppRadius.regularBorder,
-          border: Border.fromBorderSide(
-            BorderSide(color: AppColors.goldBorder),
-          ),
+          border: Border.fromBorderSide(BorderSide(color: AppColors.border)),
         ),
         textStyle: AppTextStyles.bodyMd,
       ),

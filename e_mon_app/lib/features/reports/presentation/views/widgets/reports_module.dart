@@ -1,8 +1,11 @@
 import 'package:e_mon_app/core/design_system/design_system.dart';
+import 'package:e_mon_app/core/services/networking/dio_consumer.dart';
 import 'package:e_mon_app/core/utils/app_durations.dart';
 import 'package:e_mon_app/features/reports/domain/services/energy_report_calculator.dart';
 import 'package:e_mon_app/features/reports/presentation/managers/reports_cubit.dart';
 import 'package:e_mon_app/features/reports/presentation/managers/reports_state.dart';
+import 'package:e_mon_app/features/tenants/data/models/tenant_model.dart';
+import 'package:e_mon_app/features/tenants/data/repositories/tenants_repo_impl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,9 +22,17 @@ class _ReportsModuleState extends State<ReportsModule> {
   final TextEditingController _onPeakRateController = TextEditingController();
   final TextEditingController _semiPeakRateController = TextEditingController();
   final TextEditingController _offPeakRateController = TextEditingController();
+  late final Future<List<TenantModel>> _tenantsFuture;
 
+  int? _selectedTenantId;
   DateTime? _startDate;
   DateTime? _endDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _tenantsFuture = TenantsRepoImpl(DioConsumer()).getTenants();
+  }
 
   @override
   void dispose() {
@@ -53,21 +64,39 @@ class _ReportsModuleState extends State<ReportsModule> {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              _ReportBuilderPanel(
-                state: state,
-                oneTierRateController: _oneTierRateController,
-                onPeakRateController: _onPeakRateController,
-                semiPeakRateController: _semiPeakRateController,
-                offPeakRateController: _offPeakRateController,
-                startDate: _startDate,
-                endDate: _endDate,
-                onStartDateChanged: (value) => setState(() {
-                  _startDate = value;
-                }),
-                onEndDateChanged: (value) => setState(() {
-                  _endDate = value;
-                }),
-                onGenerate: () => _generate(state),
+              FutureBuilder<List<TenantModel>>(
+                future: _tenantsFuture,
+                builder: (context, snapshot) {
+                  final tenants = snapshot.data ?? const <TenantModel>[];
+                  if (_selectedTenantId == null && tenants.length == 1) {
+                    _selectedTenantId = tenants.single.id;
+                  }
+
+                  return _ReportBuilderPanel(
+                    state: state,
+                    tenants: tenants,
+                    selectedTenantId: _selectedTenantId,
+                    isLoadingTenants:
+                        snapshot.connectionState != ConnectionState.done,
+                    tenantLoadFailed: snapshot.hasError,
+                    onTenantChanged: (value) {
+                      setState(() => _selectedTenantId = value);
+                    },
+                    oneTierRateController: _oneTierRateController,
+                    onPeakRateController: _onPeakRateController,
+                    semiPeakRateController: _semiPeakRateController,
+                    offPeakRateController: _offPeakRateController,
+                    startDate: _startDate,
+                    endDate: _endDate,
+                    onStartDateChanged: (value) => setState(() {
+                      _startDate = value;
+                    }),
+                    onEndDateChanged: (value) => setState(() {
+                      _endDate = value;
+                    }),
+                    onGenerate: () => _generate(state),
+                  );
+                },
               ),
               const SizedBox(height: AppSpacing.lg),
               if (state.message != null)
@@ -94,6 +123,7 @@ class _ReportsModuleState extends State<ReportsModule> {
 
     context.read<ReportsCubit>().generateReport(
       rates: rates,
+      tenantId: _selectedTenantId,
       startDate: _startDate,
       endDate: _endDate,
     );
@@ -146,6 +176,11 @@ class _ReportsModuleState extends State<ReportsModule> {
 class _ReportBuilderPanel extends StatelessWidget {
   const _ReportBuilderPanel({
     required this.state,
+    required this.tenants,
+    required this.selectedTenantId,
+    required this.isLoadingTenants,
+    required this.tenantLoadFailed,
+    required this.onTenantChanged,
     required this.oneTierRateController,
     required this.onPeakRateController,
     required this.semiPeakRateController,
@@ -158,6 +193,11 @@ class _ReportBuilderPanel extends StatelessWidget {
   });
 
   final ReportsState state;
+  final List<TenantModel> tenants;
+  final int? selectedTenantId;
+  final bool isLoadingTenants;
+  final bool tenantLoadFailed;
+  final ValueChanged<int?> onTenantChanged;
   final TextEditingController oneTierRateController;
   final TextEditingController onPeakRateController;
   final TextEditingController semiPeakRateController;
@@ -176,7 +216,7 @@ class _ReportBuilderPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(color: AppColors.goldBorder),
+        border: Border.all(color: AppColors.border),
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -197,6 +237,13 @@ class _ReportBuilderPanel extends StatelessWidget {
               runSpacing: AppSpacing.md,
               alignment: WrapAlignment.spaceBetween,
               children: [
+                _TenantReportSelector(
+                  tenants: tenants,
+                  selectedTenantId: selectedTenantId,
+                  isLoading: isLoadingTenants,
+                  hasError: tenantLoadFailed,
+                  onChanged: onTenantChanged,
+                ),
                 _SegmentedChoice<ReportKind>(
                   label: 'Report type',
                   selectedValue: state.kind,
@@ -247,6 +294,50 @@ class _ReportBuilderPanel extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _TenantReportSelector extends StatelessWidget {
+  const _TenantReportSelector({
+    required this.tenants,
+    required this.selectedTenantId,
+    required this.isLoading,
+    required this.hasError,
+    required this.onChanged,
+  });
+
+  final List<TenantModel> tenants;
+  final int? selectedTenantId;
+  final bool isLoading;
+  final bool hasError;
+  final ValueChanged<int?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedExists = tenants.any(
+      (tenant) => tenant.id == selectedTenantId,
+    );
+
+    return SizedBox(
+      width: 340,
+      child: DropdownButtonFormField<int>(
+        initialValue: selectedExists ? selectedTenantId : null,
+        decoration: InputDecoration(
+          labelText: 'Tenant',
+          prefixIcon: const Icon(Icons.group_outlined),
+          helperText: hasError
+              ? 'Unable to load tenants'
+              : 'Reports use only this tenant readings',
+        ),
+        items: tenants.map((tenant) {
+          return DropdownMenuItem<int>(
+            value: tenant.id,
+            child: Text(tenant.user),
+          );
+        }).toList(),
+        onChanged: isLoading || hasError || tenants.isEmpty ? null : onChanged,
       ),
     );
   }
@@ -487,7 +578,7 @@ class _DatePickerButtonState extends State<_DatePickerButton> {
             color: AppColors.surfaceContainerLowest,
             borderRadius: AppRadius.regularBorder,
             border: Border.all(
-              color: _isHovered ? AppColors.primary : AppColors.goldBorder,
+              color: _isHovered ? AppColors.primary : AppColors.border,
             ),
           ),
           child: Row(
@@ -610,7 +701,10 @@ class _ReportMessage extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
-        child: Text(message, style: AppTextStyles.bodyMd.copyWith(color: color)),
+        child: Text(
+          message,
+          style: AppTextStyles.bodyMd.copyWith(color: color),
+        ),
       ),
     );
   }
@@ -630,7 +724,7 @@ class _ReportPreviewPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: AppRadius.lgBorder,
-        border: Border.all(color: AppColors.goldBorder),
+        border: Border.all(color: AppColors.border),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -757,7 +851,7 @@ class _ReportMetricCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surfaceContainerLowest,
           borderRadius: AppRadius.regularBorder,
-          border: Border.all(color: AppColors.goldBorder),
+          border: Border.all(color: AppColors.border),
         ),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
@@ -822,7 +916,7 @@ class _PremiumActionButtonState extends State<_PremiumActionButton> {
           side: BorderSide(
             color: _isHovered && isEnabled
                 ? AppColors.primary
-                : AppColors.goldBorder,
+                : AppColors.border,
           ),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,

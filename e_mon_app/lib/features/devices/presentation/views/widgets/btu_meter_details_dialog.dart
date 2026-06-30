@@ -16,11 +16,11 @@ class BtuMeterDetailsDialog extends StatelessWidget {
       backgroundColor: AppColors.surfaceContainerLow,
       shape: RoundedRectangleBorder(
         borderRadius: AppRadius.lgBorder,
-        side: const BorderSide(color: AppColors.goldBorder),
+        side: const BorderSide(color: AppColors.border),
       ),
       title: Row(
         children: [
-          Expanded(child: Text('${reading.name} Reading')),
+          Expanded(child: Text('${reading.name} - ${reading.tenantName}')),
           const MeterTypePill(label: 'BTU'),
         ],
       ),
